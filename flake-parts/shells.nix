@@ -8,10 +8,10 @@
     lib,
     ...
   }: let
-    inherit (self'.packages) factorio-headless;
+    inherit (self'.packages) factorio-wrapper;
 
     devTools = [
-      factorio-headless
+      factorio-wrapper
     ];
   in {
     devShells = {
