@@ -43,11 +43,7 @@
         ];
 
         config = {
-          Cmd = ["/bin/factorio-server.sh"];
-
-          Volumes = {
-            "/factorio" = {};
-          };
+          Cmd = ["/bin/factorio"];
         };
       };
     };
