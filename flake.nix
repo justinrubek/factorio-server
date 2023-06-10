@@ -11,6 +11,7 @@
         ./flake-parts/shells.nix
         ./flake-parts/factorio.nix
         ./flake-parts/dockerImages.nix
+        ./flake-parts/ci.nix
       ];
     };
 }
