@@ -10,6 +10,7 @@ pub(crate) struct Args {
 #[derive(clap::Subcommand, Debug)]
 pub(crate) enum Commands {
     Auth(Auth),
+    Download(Download),
 }
 
 #[derive(clap::Args, Debug)]
@@ -27,4 +28,22 @@ pub(crate) enum AuthCommands {
 pub(crate) struct LoginRequest {
     pub username: String,
     pub password: String,
+}
+
+#[derive(clap::Args, Debug)]
+pub(crate) struct Download {
+    #[clap(subcommand)]
+    pub command: DownloadCommands,
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub(crate) enum DownloadCommands {
+    /// Downloads a single mod to the current directory
+    SingleMod(ModDetails),
+}
+
+#[derive(Serialize, Deserialize, Debug, clap::Args)]
+pub(crate) struct ModDetails {
+    pub name: String,
+    pub version: String,
 }
