@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 #[derive(clap::Parser, Debug)]
 #[command(author, version, about, long_about = None)]
 pub(crate) struct Args {
@@ -7,20 +9,22 @@ pub(crate) struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 pub(crate) enum Commands {
-    Hello(Hello),
+    Auth(Auth),
 }
 
 #[derive(clap::Args, Debug)]
-pub(crate) struct Hello {
+pub(crate) struct Auth {
     #[clap(subcommand)]
-    pub command: HelloCommands,
+    pub command: AuthCommands,
 }
 
 #[derive(clap::Subcommand, Debug)]
-pub(crate) enum HelloCommands {
-    World,
-    Name {
-        #[arg()]
-        name: String,
-    },
+pub(crate) enum AuthCommands {
+    Login(LoginRequest),
+}
+
+#[derive(Serialize, Deserialize, Debug, clap::Args)]
+pub(crate) struct LoginRequest {
+    pub username: String,
+    pub password: String,
 }

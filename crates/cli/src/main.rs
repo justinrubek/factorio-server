@@ -1,5 +1,5 @@
 use crate::{
-    commands::{Commands, HelloCommands},
+    commands::{AuthCommands, Commands, LoginRequest},
     error::Result,
 };
 use clap::Parser;
@@ -13,14 +13,27 @@ async fn main() -> Result<()> {
 
     let args = commands::Args::parse();
     match args.command {
-        Commands::Hello(hello) => {
-            let cmd = hello.command;
+        Commands::Auth(auth) => {
+            let cmd = auth.command;
             match cmd {
-                HelloCommands::World => {
-                    println!("Hello, world!");
-                }
-                HelloCommands::Name { name } => {
-                    println!("Hello, {}!", name);
+                AuthCommands::Login(LoginRequest { username, password }) => {
+                    let client = reqwest::Client::new();
+                    let res = client
+                        .post(format!("https://auth.factorio.com/api-login?username={username}&password={password}"))
+                        .send()
+                        .await?;
+
+                    match res.status() {
+                        reqwest::StatusCode::OK => (),
+                        _ => {
+                            let body = res.json::<factorio_api::ErrorResponse>().await?;
+                            tracing::error!("{:#?}", body);
+                            return Ok(());
+                        }
+                    }
+
+                    let body = res.json::<factorio_api::LoginResponse>().await?;
+                    println!("{}", body.token);
                 }
             }
         }
