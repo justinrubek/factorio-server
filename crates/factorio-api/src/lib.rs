@@ -40,7 +40,7 @@ pub struct ModResponse {
     pub thumbnail: Option<String>,
 }
 
-#[derive(Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ModRelease {
     /// Path to download for a mod. Starts with "/download" and does not include a full URL.
     /// Use "https://mods.factorio.com" as a prefix.
