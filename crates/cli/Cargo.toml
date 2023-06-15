@@ -6,8 +6,10 @@ edition = { workspace = true }
 [dependencies]
 anyhow = { workspace = true }
 clap = { version = "4.0.19", features = ["derive"] }
-# serds = { workspace = true }
-# serde_json = { workspace = true }
+factorio-api = { path = "../factorio-api" }
+serde = { workspace = true }
+serde_json = { workspace = true }
+reqwest = { workspace = true }
 tokio = { workspace = true, features = ["full"] }
 thiserror = { workspace = true }
 tracing = { workspace = true }
