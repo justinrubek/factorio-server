@@ -1,14 +1,14 @@
 use crate::{
-    commands::{AuthCommands, Commands, LoginRequest},
+    commands::{AuthCommands, Commands, DownloadCommands, LoginRequest, ModList},
     error::Result,
+    mods::{retrieve_factorio_auth, retrieve_mod_file, retrieve_mod_release, ModDetails},
 };
 use clap::Parser;
-use commands::{DownloadCommands, ModDetails};
-use tokio::io::AsyncWriteExt;
 use tracing::info;
 
 mod commands;
 mod error;
+mod mods;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -43,63 +43,77 @@ async fn main() -> Result<()> {
         Commands::Download(download) => {
             let cmd = download.command;
             match cmd {
-                DownloadCommands::SingleMod(ModDetails { name, version }) => {
-                    info!("Downloading mod {name} version {version}");
+                DownloadCommands::SingleMod(details) => {
+                    info!(
+                        "Downloading mod {} version {}",
+                        details.name, details.version
+                    );
                     // Retrieve the mod's info
                     let client = reqwest::Client::new();
 
-                    let res = client
-                        .get(format!("https://mods.factorio.com/api/mods/{name}"))
-                        .send()
-                        .await?;
+                    let release_info = retrieve_mod_release(&client, &details).await?;
 
-                    match res.status() {
-                        reqwest::StatusCode::OK => (),
-                        _ => {
-                            let body = res.json::<factorio_api::ErrorResponse>().await?;
-                            tracing::error!("{:#?}", body);
-                            return Ok(());
-                        }
-                    }
-
-                    let body = res.json::<factorio_api::ModResponse>().await?;
                     // determine the download_url using the version
-                    let (download_url, file_name) = body
-                        .releases
-                        .iter()
-                        .find(|release| release.version == version)
-                        .map(|release| (release.download_url.clone(), release.file_name.clone()))
-                        .unwrap_or_else(|| {
-                            tracing::error!("Version {} not found for mod {}", version, name);
-                            std::process::exit(1);
-                        });
+                    let download_url = release_info.download_url;
+                    let file_name = release_info.file_name;
 
                     tracing::debug!("Downloading from {}", download_url);
 
-                    // Retrieve auth token and username from environment variables
-                    let factorio_username =
-                        std::env::var("FACTORIO_USERNAME").expect("FACTORIO_USERNAME not set");
-                    let factorio_token =
-                        std::env::var("FACTORIO_TOKEN").expect("FACTORIO_TOKEN not set");
+                    let (factorio_username, factorio_token) = retrieve_factorio_auth();
 
-                    // Retrieve the mod's file
-                    let res = client.get(format!("https://mods.factorio.com{download_url}?username={factorio_username}&token={factorio_token}"))
-                        .send()
-                        .await?;
+                    retrieve_mod_file(
+                        &client,
+                        &download_url,
+                        std::path::Path::new(&file_name),
+                        &factorio_username,
+                        &factorio_token,
+                    )
+                    .await?;
+                }
+                DownloadCommands::ModList(ModList { file, directory }) => {
+                    let file = tokio::fs::read_to_string(file).await?;
+                    let mod_list = ron::from_str::<Vec<ModDetails>>(&file)?;
 
-                    match res.status() {
-                        reqwest::StatusCode::OK => (),
-                        _ => {
-                            let body = res.json::<factorio_api::ErrorResponse>().await?;
-                            tracing::error!("{:#?}", body);
-                            return Ok(());
-                        }
+                    // Retrieve info for all of the mods
+                    let client = reqwest::Client::new();
+
+                    let mut releases = Vec::new();
+                    for mod_item in mod_list {
+                        println!(
+                            "Retrieving mod {} version {}",
+                            mod_item.name, mod_item.version
+                        );
+                        let release_info = retrieve_mod_release(&client, &mod_item).await?;
+                        releases.push(release_info);
                     }
 
-                    let body = res.bytes().await?;
-                    // Write the file to disk
-                    let mut file = tokio::fs::File::create(file_name).await?;
-                    file.write_all(&body).await?;
+                    info!(?releases, "Downloading {} mods", releases.len());
+
+                    // create the directory if it doesn't exist
+                    tokio::fs::create_dir_all(&directory).await?;
+
+                    let download_tasks = releases
+                        .into_iter()
+                        .map(|release| async {
+                            let download_url = release.download_url;
+                            let file_name = release.file_name;
+
+                            tracing::debug!("Downloading from {}", download_url);
+
+                            let (factorio_username, factorio_token) = retrieve_factorio_auth();
+
+                            retrieve_mod_file(
+                                &client,
+                                &download_url,
+                                &std::path::Path::new(&directory).join(&file_name),
+                                &factorio_username,
+                                &factorio_token,
+                            )
+                            .await
+                        })
+                        .collect::<Vec<_>>();
+
+                    futures::future::try_join_all(download_tasks).await?;
                 }
             }
         }
