@@ -21,7 +21,7 @@ pub(crate) async fn retrieve_mod_release(
     match res.status() {
         reqwest::StatusCode::OK => (),
         _ => {
-            let body = res.json::<factorio_api::ErrorResponse>().await?;
+            let body = res.text().await?;
             tracing::error!("{:#?}", body);
             return Err(Error::FactorioApi(body));
         }
@@ -59,7 +59,7 @@ pub async fn retrieve_mod_file(
     match res.status() {
         reqwest::StatusCode::OK => (),
         _ => {
-            let body = res.json::<factorio_api::ErrorResponse>().await?;
+            let body = res.text().await?;
             tracing::error!("{:#?}", body);
             return Ok(());
         }

@@ -1,6 +1,6 @@
 use crate::{
     commands::{AuthCommands, Commands, DownloadCommands, LoginRequest, ModList},
-    error::Result,
+    error::{Error, Result},
     mods::{retrieve_factorio_auth, retrieve_mod_file, retrieve_mod_release, ModDetails},
 };
 use clap::Parser;
@@ -29,13 +29,13 @@ async fn main() -> Result<()> {
                     match res.status() {
                         reqwest::StatusCode::OK => (),
                         _ => {
-                            let body = res.json::<factorio_api::ErrorResponse>().await?;
+                            let body = res.json::<factorio_api::auth::LoginError>().await?;
                             tracing::error!("{:#?}", body);
-                            return Ok(());
+                            return Err(Error::FactorioLogin(body));
                         }
                     }
 
-                    let body = res.json::<factorio_api::LoginResponse>().await?;
+                    let body = res.json::<factorio_api::auth::LoginResponse>().await?;
                     println!("{}", body.token);
                 }
             }
@@ -79,7 +79,7 @@ async fn main() -> Result<()> {
 
                     let mut releases = Vec::new();
                     for mod_item in mod_list {
-                        println!(
+                        info!(
                             "Retrieving mod {} version {}",
                             mod_item.name, mod_item.version
                         );
@@ -95,8 +95,15 @@ async fn main() -> Result<()> {
                     let download_tasks = releases
                         .into_iter()
                         .map(|release| async {
+                            info!("Downloading mod {}", release.file_name);
                             let download_url = release.download_url;
                             let file_name = release.file_name;
+
+                            // check if the file already exists in the directory
+                            if std::path::Path::new(&directory).join(&file_name).exists() {
+                                tracing::info!("File {} already exists, skipping", file_name);
+                                return Ok(());
+                            }
 
                             tracing::debug!("Downloading from {}", download_url);
 
