@@ -15,6 +15,7 @@ pub(crate) struct Args {
 pub(crate) enum Commands {
     Auth(Auth),
     Download(Download),
+    Server(Server),
 }
 
 #[derive(clap::Args, Debug)]
@@ -55,4 +56,32 @@ pub(crate) struct ModList {
     /// The path to the directory to download the mods to
     #[clap(long, short, default_value = ".")]
     pub directory: PathBuf,
+}
+
+#[derive(clap::Args, Debug)]
+pub(crate) struct Server {
+    #[clap(subcommand)]
+    pub command: ServerCommands,
+}
+
+#[derive(clap::Subcommand, Debug)]
+pub(crate) enum ServerCommands {
+    /// Starts the game server
+    Start(Start),
+}
+
+#[derive(clap::Args, Debug)]
+pub(crate) struct Start {
+    /// The executable to run
+    #[clap(long, short = 'e', default_value = "factorio")]
+    pub executable: String,
+    /// The path to the directory that the mods will be downloaded to
+    #[clap(long, short = 'd')]
+    pub mod_directory: PathBuf,
+    /// The path to the mod list file
+    #[clap(long, short = 'm')]
+    pub mod_list: Option<PathBuf>,
+    /// Pass-through arguments to the server
+    #[arg()]
+    pub args: Vec<String>,
 }

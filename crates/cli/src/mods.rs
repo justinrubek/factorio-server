@@ -1,6 +1,7 @@
 use crate::error::{Error, Result};
 use serde::{Deserialize, Serialize};
 use tokio::io::AsyncWriteExt;
+use tracing::debug;
 
 #[derive(Serialize, Deserialize, Debug, clap::Args)]
 pub(crate) struct ModDetails {
@@ -79,4 +80,59 @@ pub fn retrieve_factorio_auth() -> (String, String) {
     let factorio_token = std::env::var("FACTORIO_TOKEN").expect("FACTORIO_TOKEN not set");
 
     (factorio_username, factorio_token)
+}
+
+/// retrieves all the specified mods and downloads them to the specified directory.
+pub(crate) async fn download_mod_list(
+    mod_list: Vec<ModDetails>,
+    directory: &std::path::Path,
+) -> Result<()> {
+    // Retrieve info for all of the mods
+    let client = reqwest::Client::new();
+
+    let mut releases = Vec::new();
+    for mod_item in mod_list {
+        debug!(
+            "Retrieving details for {} version {}",
+            mod_item.name, mod_item.version
+        );
+        let release_info = retrieve_mod_release(&client, &mod_item).await?;
+        releases.push(release_info);
+    }
+
+    debug!(?releases, "Preparing {} mods", releases.len());
+
+    // create the directory if it doesn't exist
+    tokio::fs::create_dir_all(&directory).await?;
+
+    let download_tasks = releases
+        .into_iter()
+        .map(|release| async {
+            let download_url = release.download_url;
+            let file_name = release.file_name;
+
+            // check if the file already exists in the directory
+            if std::path::Path::new(&directory).join(&file_name).exists() {
+                tracing::info!("File {} already exists, skipping", file_name);
+                return Ok(());
+            }
+
+            debug!("Downloading {file_name} from {download_url}");
+
+            let (factorio_username, factorio_token) = retrieve_factorio_auth();
+
+            retrieve_mod_file(
+                &client,
+                &download_url,
+                &std::path::Path::new(&directory).join(&file_name),
+                &factorio_username,
+                &factorio_token,
+            )
+            .await
+        })
+        .collect::<Vec<_>>();
+
+    futures::future::try_join_all(download_tasks).await?;
+
+    Ok(())
 }
