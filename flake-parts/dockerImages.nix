@@ -40,6 +40,22 @@
           self'.packages.factorio-headless
           pkgs.cacert
           pkgs.iproute2
+          self'.packages.factorio-server
+        ];
+
+        config = {
+          Cmd = ["/bin/factorio"];
+        };
+      };
+
+      "image/factorio-server-minimal" = pkgs.dockerTools.buildImage {
+        name = "factorio-server";
+        tag = self.rev or "dirty";
+
+        copyToRoot = [
+          self'.packages.factorio-headless
+          pkgs.cacert
+          pkgs.iproute2
         ];
 
         config = {
