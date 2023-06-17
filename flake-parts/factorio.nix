@@ -22,7 +22,7 @@
     '';
 
     factorio-wrapper = pkgs.writeShellApplication {
-      name = "factorio-server";
+      name = "factorio";
       runtimeInputs = [self'.packages.factorio-headless];
       text = ''
         #!/usr/bin/env bash
