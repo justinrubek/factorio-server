@@ -721,17 +721,17 @@
     },
     "nixpkgs_3": {
       "locked": {
-        "lastModified": 1686226982,
-        "narHash": "sha256-nLuiPoeiVfqqzeq9rmXxpybh77VS37dsY/k8N2LoxVg=",
-        "owner": "NixOS",
+        "lastModified": 1689891568,
+        "narHash": "sha256-nLzsDN/yiDa8tqLkwFDZhs+UeWH4/aQzmZsMmbbp+ig=",
+        "owner": "justinrubek",
         "repo": "nixpkgs",
-        "rev": "a64b73e07d4aa65cfcbda29ecf78eaf9e72e44bd",
+        "rev": "1afd51dece13e90695679950696724ba519b76e2",
         "type": "github"
       },
       "original": {
-        "id": "nixpkgs",
-        "ref": "nixos-unstable",
-        "type": "indirect"
+        "owner": "justinrubek",
+        "repo": "nixpkgs",
+        "type": "github"
       }
     },
     "pre-commit-hooks": {
