@@ -1,6 +1,6 @@
 {
   inputs = {
-    nixpkgs.url = "github:justinrubek/nixpkgs";
+    nixpkgs.url = "github:nixos/nixpkgs/nixos-unstable";
     flake-parts.url = "github:hercules-ci/flake-parts";
     nix-filter.url = "github:numtide/nix-filter";
     fenix = {
