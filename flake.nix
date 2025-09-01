@@ -16,6 +16,10 @@
       url = "github:justinrubek/bomper";
       inputs.nixpkgs.follows = "nixpkgs";
     };
+    vintagestory = {
+      url = "github:justinrubek/vintagestory";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   outputs = inputs:
@@ -26,6 +30,7 @@
         ./flake-parts/factorio.nix
         ./flake-parts/dockerImages.nix
         ./flake-parts/ci.nix
+        ./flake-parts/vintagestory.nix
 
         ./flake-parts/cargo.nix
         ./flake-parts/rust-toolchain.nix
