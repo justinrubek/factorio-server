@@ -13,26 +13,8 @@ pub(crate) struct Args {
 
 #[derive(clap::Subcommand, Debug)]
 pub(crate) enum Commands {
-    Auth(Auth),
     Download(Download),
     Server(Server),
-}
-
-#[derive(clap::Args, Debug)]
-pub(crate) struct Auth {
-    #[clap(subcommand)]
-    pub command: AuthCommands,
-}
-
-#[derive(clap::Subcommand, Debug)]
-pub(crate) enum AuthCommands {
-    Login(LoginRequest),
-}
-
-#[derive(Serialize, Deserialize, Debug, clap::Args)]
-pub(crate) struct LoginRequest {
-    pub username: String,
-    pub password: String,
 }
 
 #[derive(clap::Args, Debug)]
@@ -73,7 +55,7 @@ pub(crate) enum ServerCommands {
 #[derive(clap::Args, Debug)]
 pub(crate) struct Start {
     /// The executable to run
-    #[clap(long, short = 'e', default_value = "factorio")]
+    #[clap(long, short = 'e', default_value = "vintagestory")]
     pub executable: String,
     /// The path to the directory that the mods will be downloaded to
     #[clap(long, short = 'd')]
