@@ -1,7 +1,5 @@
 use std::path::PathBuf;
 
-use serde::{Deserialize, Serialize};
-
 use crate::mods::ModDetails;
 
 #[derive(clap::Parser, Debug)]

@@ -1,5 +1,3 @@
-// cli/src/errors.rs
-use reqwest;
 use ron::de::SpannedError;
 use std::io;
 use thiserror::Error;

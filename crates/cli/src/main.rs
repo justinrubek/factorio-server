@@ -1,6 +1,6 @@
 use crate::{
     commands::{Commands, DownloadCommands, ModList},
-    error::{Error, Result},
+    error::Result,
     mods::{download_mod_list, retrieve_mod_file, retrieve_mod_release, ModDetails},
 };
 use clap::Parser;
