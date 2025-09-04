@@ -115,15 +115,7 @@ async fn main() -> Result<()> {
 }
 
 async fn run_vintagestory_server(opts: &commands::Start) -> Result<tokio::process::Child> {
-    let mod_directory = std::fs::canonicalize(&opts.mod_directory)?;
-
-    info!(?mod_directory, ?opts.args, "Starting Vintage Story server");
-
     let mut child = Command::new(&opts.executable)
-        .args([
-            "--mod-directory",
-            mod_directory.to_str().expect("Invalid mod directory"),
-        ])
         .args(opts.args.iter())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
