@@ -117,6 +117,7 @@ async fn main() -> Result<()> {
 async fn run_vintagestory_server(opts: &commands::Start) -> Result<tokio::process::Child> {
     let mut child = Command::new(&opts.executable)
         .args(opts.args.iter())
+        .envs(std::env::vars())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
         .spawn()?;
